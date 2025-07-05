@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Mitra Admin Panel</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js for analytics charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <button id="sidebarToggle" class="btn btn-secondary"><i class="fas fa-bars"></i></button>
+        <h1>Local Mitra Admin Panel</h1>
+        <div class="user-info">Welcome, <span id="adminUserName">Admin</span>!</div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="sidebar">
+        <ul>
+            <li id="dashboardNav" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+            <li id="listingsNav"><i class="fas fa-list"></i> Listings Management</li>
+            <li id="adsNav"><i class="fas fa-bullhorn"></i> Anchor Ads Manager</li>
+            <li id="offersNav"><i class="fas fa-gift"></i> Offers Management</li>
+            <li id="usersNav"><i class="fas fa-users"></i> User Management</li>
+            <li id="analyticsNav"><i class="fas fa-chart-line"></i> Visitor Analytics</li>
+            <li id="feedbackNav"><i class="fas fa-comments"></i> Feedback & Reports</li>
+            <li id="settingsNav"><i class="fas fa-cog"></i> Settings</li>
+            <li id="dataExportNav"><i class="fas fa-database"></i> Data Export / Backup</li>
+            <li id="logoutNav"><i class="fas fa-sign-out-alt"></i> Logout</li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main id="mainContent" class="main-content">
+
+        <!-- Message Box for notifications -->
+        <div id="messageBox"></div>
+
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="admin-section">
+            <h2>Dashboard</h2>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Total Listings</h3>
+                    <div class="count" id="totalListingsCount">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Pending Listings</h3>
+                    <div class="count" id="pendingListingsCount">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Active Ads</h3>
+                    <div class="count" id="activeAdsCount">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Today's Offers</h3>
+                    <div class="count" id="todaysOffersCount">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Visitor Count</h3>
+                    <div class="count" id="visitorCount">0</div>
+                </div>
+            </div>
+            <h3>Quick Access</h3>
+            <div class="quick-access-buttons">
+                <button class="btn btn-primary" id="approveListingsBtn"><i class="fas fa-check-circle"></i> Approve Listings</button>
+                <button class="btn btn-warning" id="stopAdsBtn"><i class="fas fa-stop-circle"></i> Stop Ads</button>
+                <button class="btn btn-danger" id="flagReportsBtn"><i class="fas fa-flag"></i> Flag Reports</button>
+            </div>
+        </section>
+
+        <!-- Listings Management Section -->
+        <section id="listingsSection" class="admin-section hidden">
+            <h2>Listings Management</h2>
+            <div class="filters">
+                <div class="form-group filter-group">
+                    <label for="listingCityFilter">City:</label>
+                    <select id="listingCityFilter">
+                        <option value="">All Cities</option>
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group filter-group">
+                    <label for="listingServiceTypeFilter">Service Type:</label>
+                    <select id="listingServiceTypeFilter">
+                        <option value="">All Services</option>
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group filter-group">
+                    <label for="listingStatusFilter">Status:</label>
+                    <select id="listingStatusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="applyListingFiltersBtn"><i class="fas fa-filter"></i> Apply Filters</button>
+            </div>
+
+            <div class="flex justify-end gap-3 mb-4">
+                <button class="btn btn-success" id="addNewListingBtn"><i class="fas fa-plus-circle"></i> Add New Listing</button>
+                <button class="btn btn-secondary" id="bulkUploadListingsBtn"><i class="fas fa-upload"></i> Bulk Upload CSV</button>
+            </div>
+
+            <div id="bulkUploadArea" class="admin-section hidden">
+                <h3>Bulk Upload Listings via CSV</h3>
+                <div class="file-upload-area" id="dropArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p>Drag & Drop CSV file here or Click to Browse</p>
+                    <input type="file" id="csvFileInput" accept=".csv">
+                </div>
+                <button class="btn btn-primary mt-4" id="uploadCsvBtn" disabled>Upload CSV</button>
+                <p class="mt-2">Download Sample CSV: <a href="sample_listings.csv" download class="text-blue-600 hover:underline">sample_listings.csv</a></p>
+                <div id="csvPreview" class="mt-4 hidden">
+                    <h4>CSV Preview:</h4>
+                    <pre id="csvContentPreview" class="bg-gray-100 p-4 rounded overflow-auto max-h-60"></pre>
+                    <button class="btn btn-success mt-2" id="confirmCsvUploadBtn">Confirm Upload</button>
+                </div>
+            </div>
+
+            <table class="data-table" id="listingsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>City</th>
+                        <th>Service Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Listing rows will be populated here by JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Add/Edit Listing Modal -->
+        <div id="listingModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 id="listingModalTitle">Add New Listing</h2>
+                <form id="listingForm">
+                    <input type="hidden" id="listingId">
+                    <div class="form-group">
+                        <label for="listingName">Business Name:</label>
+                        <input type="text" id="listingName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="listingDescription">Description:</label>
+                        <textarea id="listingDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="listingCity">City:</label>
+                        <input type="text" id="listingCity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="listingServiceType">Service Type:</label>
+                        <input type="text" id="listingServiceType" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="listingContact">Contact Info:</label>
+                        <input type="text" id="listingContact">
+                    </div>
+                    <div class="form-group">
+                        <label for="listingStatus">Status:</label>
+                        <select id="listingStatus">
+                            <option value="pending">Pending</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Listing</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Anchor Ads Manager Section -->
+        <section id="adsSection" class="admin-section hidden">
+            <h2>Anchor Ads Manager</h2>
+            <div class="filters">
+                <div class="form-group filter-group">
+                    <label for="adStatusFilter">Status:</label>
+                    <select id="adStatusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="applyAdFiltersBtn"><i class="fas fa-filter"></i> Apply Filters</button>
+            </div>
+
+            <table class="data-table" id="adsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ad Image</th>
+                        <th>Description</th>
+                        <th>Plan Duration</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Expiry Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Ad rows will be populated here by JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Offers Management Section -->
+        <section id="offersSection" class="admin-section hidden">
+            <h2>Offers Management</h2>
+            <button class="btn btn-success mb-4" id="addNewOfferBtn"><i class="fas fa-plus-circle"></i> Add New Offer</button>
+
+            <table class="data-table" id="offersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Banner</th>
+                        <th>Title</th>
+                        <th><th>Description</th>
+                        <th>Validity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Offer rows will be populated here by JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Add/Edit Offer Modal -->
+        <div id="offerModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 id="offerModalTitle">Add New Offer</h2>
+                <form id="offerForm" enctype="multipart/form-data">
+                    <input type="hidden" id="offerId">
+                    <div class="form-group">
+                        <label for="offerTitle">Offer Title:</label>
+                        <input type="text" id="offerTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="offerDescription">Description:</label>
+                        <textarea id="offerDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="offerBanner">Offer Banner Image URL:</label>
+                        <input type="text" id="offerBanner" placeholder="e.g., https://example.com/banner.jpg">
+                        <p class="text-sm text-gray-500 mt-1">Or upload image:</p>
+                        <input type="file" id="offerBannerUpload" accept="image/*">
+                        <img id="offerBannerPreview" src="" alt="Banner Preview" class="mt-2 w-full h-32 object-contain hidden">
+                    </div>
+                    <div class="form-group">
+                        <label for="offerExpiry">Expiry Date:</label>
+                        <input type="date" id="offerExpiry" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Preview:</label>
+                        <div class="offer-preview-card">
+                            <img id="previewBanner" src="https://placehold.co/150x80/cccccc/333333?text=Offer+Banner" alt="Offer Banner">
+                            <h4 id="previewTitle">Offer Title Preview</h4>
+                            <p id="previewValidity">Validity: DD/MM/YYYY</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Offer</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- User Management Section -->
+        <section id="usersSection" class="admin-section hidden">
+            <h2>User Management</h2>
+            <table class="data-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email/Mobile</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- User rows will be populated here by JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Visitor Analytics Section -->
+        <section id="analyticsSection" class="admin-section hidden">
+            <h2>Visitor Analytics</h2>
+            <div class="filters">
+                <div class="form-group filter-group">
+                    <label for="analyticsPeriod">Period:</label>
+                    <select id="analyticsPeriod">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="generateAnalyticsBtn"><i class="fas fa-chart-bar"></i> Generate Report</button>
+                <button class="btn btn-secondary" id="exportAnalyticsBtn"><i class="fas fa-download"></i> Export Data (CSV)</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="analyticsChart"></canvas>
+            </div>
+            <div class="dashboard-grid mt-4">
+                <div class="dashboard-card">
+                    <h3>Total Views</h3>
+                    <div class="count" id="totalViews">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Total Searches</h3>
+                    <div class="count" id="totalSearches">0</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Listing Clicks</h3>
+                    <div class="count" id="listingClicks">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feedback & Reports Section -->
+        <section id="feedbackSection" class="admin-section hidden">
+            <h2>Feedback & Reports</h2>
+            <table class="data-table" id="feedbackTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Feedback rows will be populated here by JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settingsSection" class="admin-section hidden">
+            <h2>Settings</h2>
+
+            <h3>Cities & States Management</h3>
+            <div class="form-group">
+                <label for="newCity">Add New City:</label>
+                <input type="text" id="newCity" placeholder="Enter city name">
+                <button class="btn btn-primary mt-2" id="addCityBtn"><i class="fas fa-plus"></i> Add City</button>
+            </div>
+            <div class="form-group">
+                <label for="removeCity">Remove City:</label>
+                <select id="removeCity">
+                    <option value="">Select city to remove</option>
+                    <!-- Populated by JS -->
+                </select>
+                <button class="btn btn-danger mt-2" id="removeCityBtn"><i class="fas fa-minus"></i> Remove City</button>
+            </div>
+            <div class="form-group">
+                <label for="cityCsvUpload">Bulk Upload Cities (CSV):</label>
+                <input type="file" id="cityCsvUpload" accept=".csv">
+                <button class="btn btn-secondary mt-2" id="uploadCityCsvBtn"><i class="fas fa-upload"></i> Upload Cities CSV</button>
+                <p class="text-sm text-gray-500 mt-1">CSV format: Each city on a new line (no header).</p>
+            </div>
+
+            <div class="form-group">
+                <label for="newState">Add New State:</label>
+                <input type="text" id="newState" placeholder="Enter state name">
+                <button class="btn btn-primary mt-2" id="addStateBtn"><i class="fas fa-plus"></i> Add State</button>
+            </div>
+            <div class="form-group">
+                <label for="removeState">Remove State:</label>
+                <select id="removeState">
+                    <option value="">Select state to remove</option>
+                    <!-- Populated by JS -->
+                </select>
+                <button class="btn btn-danger mt-2" id="removeStateBtn"><i class="fas fa-minus"></i> Remove State</button>
+            </div>
+            <div class="form-group">
+                <label for="stateCsvUpload">Bulk Upload States (CSV):</label>
+                <input type="file" id="stateCsvUpload" accept=".csv">
+                <button class="btn btn-secondary mt-2" id="uploadStateCsvBtn"><i class="fas fa-upload"></i> Upload States CSV</button>
+                <p class="text-sm text-gray-500 mt-1">CSV format: Each state on a new line (no header).</p>
+            </div>
+
+            <h3 class="mt-8">Service/Business Categories</h3>
+            <div class="form-group">
+                <label for="newCategory">Add New Category:</label>
+                <input type="text" id="newCategory" placeholder="e.g., Plumber, Electrician">
+                <button class="btn btn-primary mt-2" id="addCategoryBtn"><i class="fas fa-plus"></i> Add Category</button>
+            </div>
+            <div class="form-group">
+                <label for="removeCategory">Remove Category:</label>
+                <select id="removeCategory">
+                    <option value="">Select category to remove</option>
+                    <!-- Populated by JS -->
+                </select>
+                <button class="btn btn-danger mt-2" id="removeCategoryBtn"><i class="fas fa-minus"></i> Remove Category</button>
+            </div>
+            <div class="form-group">
+                <label for="categoryCsvUpload">Bulk Upload Categories (CSV):</label>
+                <input type="file" id="categoryCsvUpload" accept=".csv">
+                <button class="btn btn-secondary mt-2" id="uploadCategoryCsvBtn"><i class="fas fa-upload"></i> Upload Categories CSV</button>
+                <p class="text-sm text-gray-500 mt-1">CSV format: Each category on a new line (no header).</p>
+            </div>
+
+            <h3 class="mt-8">Admin Account Settings</h3>
+            <div class="form-group">
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" id="currentPassword">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword">
+            </div>
+            <div class="form-group">
+                <label for="confirmNewPassword">Confirm New Password:</label>
+                <input type="password" id="confirmNewPassword">
+            </div>
+            <button class="btn btn-primary" id="changePasswordBtn"><i class="fas fa-key"></i> Change Password</button>
+
+            <h3 class="mt-8">UI Preferences</h3>
+            <div class="form-group">
+                <label for="themeSelect">UI Theme:</label>
+                <select id="themeSelect">
+                    <option value="default">Default Theme</option>
+                    <option value="blue">Blue Theme</option>
+                    <option value="green">Green Theme</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="darkModeToggle">Dark Mode:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="languageSelect">Language Preference:</label>
+                <select id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ta">Tamil</option>
+                    <option value="te">Telugu</option>
+                    <option value="bn">Bengali</option>
+                    <option value="gu">Gujarati</option>
+                    <option value="mr">Marathi</option>
+                    <option value="pa">Punjabi</option>
+                    <option value="kn">Kannada</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Data Export / Backup Section -->
+        <section id="dataExportSection" class="admin-section hidden">
+            <h2>Data Export / Backup</h2>
+            <div class="flex flex-wrap gap-4">
+                <button class="btn btn-primary" id="exportListingsCsvBtn"><i class="fas fa-download"></i> Export Listings CSV</button>
+                <button class="btn btn-primary" id="exportAdsCsvBtn"><i class="fas fa-download"></i> Export Ads CSV</button>
+                <button class="btn btn-primary" id="exportOffersCsvBtn"><i class="fas fa-download"></i> Export Offers CSV</button>
+                <button class="btn btn-primary" id="exportUsersCsvBtn"><i class="fas fa-download"></i> Export Users CSV</button>
+                <button class="btn btn-secondary" id="manualBackupBtn"><i class="fas fa-save"></i> Manual Database Backup</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Main JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
